@@ -1,0 +1,7 @@
+name: lemur
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconda::lemur=1.0.1
