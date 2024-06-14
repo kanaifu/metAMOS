@@ -1,0 +1,62 @@
+name: lemur
+description: Perform rapid and accurate taxonomic profiling on long-read metagenomic datasets using Lemur.
+keywords:
+  - metagenomics
+  - long-reads
+  - taxonomic profiling
+  - microbial communities
+
+tools:
+  - lemur:
+      description: A tool for rapid and accurate taxonomic profiling on long-read metagenomic datasets.
+      documentation: https://github.com/treangenlab/lemur
+      licence: "MIT"
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information. 
+        e.g. [ id:'sample1', single_end:true ] 
+  - reads:
+      type: file
+      description: Input FASTQ file containing long reads for taxonomic profiling.
+  - database:
+      type: directory
+      description: Path to the directory containing the Lemur marker gene database.
+  - taxonomy:
+      type: file
+      description: Path to the taxonomy.tsv file associated with the database.
+      pattern: "taxonomy.tsv"
+
+output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information and potential summary results.
+        e.g. [ id:'sample1', single_end:true, some_lemur_statistic: 123 ] 
+  - relative_abundance:
+      type: file
+      description: TSV file containing raw taxonomic IDs, lineage, and inferred relative abundances.
+      pattern: "relative_abundance.tsv"
+  - aggregated_abundance:
+      type: file
+      description: TSV file with relative abundances aggregated at the specified taxonomic rank.
+      pattern: "relative_abundance-*.tsv"
+  - probability_files:
+      type: file
+      description: Files capturing individual read probabilities for each taxon.
+      pattern: "*P_rgs_df*"
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+
+authors:
+  - "@nsapoval"
+  - "@bkille"
+
+maintainers:
+  - "@nsapoval"
+  - "@bkille"
+
