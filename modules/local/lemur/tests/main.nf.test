@@ -1,0 +1,70 @@
+// Goal of the test:
+
+nextflow_process {
+
+    name "Test Process LEMUR"
+    script "../main.nf"
+    process "LEMUR"
+    config "./nextflow.config"
+    tag "lemur"
+    tag "modules"
+    tag "modules_nfcore"
+
+
+    test("lemur_default") {
+        tag "lemur_default"
+
+        // Download and prepare test data before running the process
+        preProcess {
+            // Download the test data directory as a ZIP archive
+            Channel.fromPath("https://github.com/treangenlab/lemur/archive/refs/heads/main.zip", checkIfExists: true)
+                .set { test_data_archive }
+
+            // Unzip the archive
+            process unzip_test_data {
+                publishDir "$baseDir/test_data", mode: 'copy'
+
+                input:
+                path archive from test_data_archive
+
+                output:
+                path "test_data/*"
+
+                """
+                unzip $archive
+                """
+            }
+        }
+
+        // Define input data paths 
+        input {
+            meta = [ [ id:'test_sample' ] ] // Sample information
+            reads = file("$baseDir/test_data/lemur-main/examples/example-data/example.fastq", checkIfExists: true)
+            database = file("$baseDir/test_data/lemur-main/examples/example-db", checkIfExists: true)
+            taxonomy = file("$baseDir/test_data/lemur-main/examples/example-db/taxonomy.tsv", checkIfExists: true)
+        }
+        
+        // Pass inputs to the LEMUR process (using the process defined in ../main.nf)
+        when {
+            process {
+                input = [ meta, reads, database, taxonomy ]
+            }
+        }
+
+        // Assertions to check for successful execution and expected outputs
+        then {
+            assertAll(
+                { assert process.success }, // Check if the process completed successfully
+
+                // Check if output files exist and have the expected names
+                { assert process.out.lemur_results.get(0).get(1) ==~ /.*\/test_sample_lemur_output_relative_abundance.tsv/ },
+                { assert process.out.lemur_results.get(0).get(2) ==~ /.*\/test_sample_lemur_output_relative_abundance-.*.tsv/ },
+                { assert process.out.versions.get(0) ==~ /.*\/versions.yml/ },
+
+                // Additional assertions to check file content (if needed)
+                // Example: Check if the raw abundance file contains a specific taxonomic ID
+                // { assert path(process.out.lemur_results.get(0).get(1)).text =~ /expected_taxonomic_id/ }, 
+            )
+        }
+    }
+}
